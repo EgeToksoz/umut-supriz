@@ -1,0 +1,512 @@
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+    font-family: 'Arial', sans-serif;
+    overflow: hidden;
+    position: fixed;
+    /* iOS'ta lastik bandı (rubber-band) kaydırma ve zıplama efektini engeller */
+    overscroll-behavior: none;
+    touch-action: none;
+    /* Pinch-zoom ve çift dokunma yakınlaştırmasını engeller */
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    /* iOS'ta görsellere uzun basınca çıkan menüyü engeller */
+}
+
+#viewport-wrapper {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #000;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    box-sizing: border-box;
+}
+
+#game-container {
+    width: 100%;
+    height: 100%;
+    max-width: calc((100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom)) * 16 / 9);
+    max-height: calc((100vw - env(safe-area-inset-left) - env(safe-area-inset-right)) * 9 / 16);
+    aspect-ratio: 16 / 9;
+    background-color: #1a1a24;
+    position: relative;
+    overflow: hidden;
+    border: 2px solid #444;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+    flex-shrink: 0;
+}
+
+/* --- MOBİL DOKUNMATİK KONTROL --- */
+#touch-controls {
+    position: fixed;
+    right: calc(20px + env(safe-area-inset-right));
+    bottom: calc(24px + env(safe-area-inset-bottom));
+    z-index: 6000;
+    display: none;
+    /* Varsayılan gizli, JS dokunmatik cihaz tespit edince gösterir */
+}
+
+#btn-right {
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.6);
+    background-color: rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(4px);
+    color: #fff;
+    font-size: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: none;
+    user-select: none;
+    padding: 0;
+}
+
+#btn-right:active,
+#btn-right.pressed {
+    background-color: rgba(255, 255, 255, 0.4);
+    transform: scale(0.94);
+}
+
+/* --- YATAY ÇEVİRME İPUCU (dar/portre ekranlarda) --- */
+#rotate-hint {
+    position: fixed;
+    top: calc(12px + env(safe-area-inset-top));
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 7000;
+    background: rgba(0, 0, 0, 0.75);
+    color: #fff;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    padding: 8px 14px;
+    border-radius: 20px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+}
+
+#rotate-hint.show {
+    opacity: 1;
+}
+
+#scene-area {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    transition: background-image 0.5s ease-in-out;
+}
+
+.character {
+    position: absolute;
+    bottom: 5%;
+    height: 38%;
+    width: auto;
+    z-index: 2;
+    -webkit-user-drag: none;
+    -webkit-touch-callout: none;
+    user-select: none;
+    pointer-events: none;
+    transform-origin: bottom center;
+    transition: opacity 0.5s ease;
+}
+
+img {
+    -webkit-user-drag: none;
+    -webkit-touch-callout: none;
+}
+
+/* Baggage loading bobbing effect */
+@keyframes baggageBob {
+    0%, 100% { margin-bottom: 0px; }
+    50% { margin-bottom: 14px; }
+}
+
+.character.loading-bob {
+    animation: baggageBob 0.5s infinite ease-in-out;
+}
+
+/* --- UI KATMANI --- */
+#ui-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    /* Bu önemli: UI katmanı tıklamaları engellemesin, alttaki oyuna geçsin */
+    z-index: 100;
+    /* Sahnelerin her zaman üstünde dursun */
+}
+
+/* Tarih Göstergesi Stili */
+#date-display {
+    position: absolute;
+    top: 25px;
+    left: 25px;
+
+    /* Retro Kutu Tasarımı */
+    background-color: #fcff4b;
+    /* Kutunun içi beyaz */
+    color: #000;
+    /* Yazı siyah */
+    padding: 5px 10px;
+    /* Yazının kenarlara mesafesi */
+
+    /* Font Ayarları (Sistem fontu ile retro hava) */
+    font-family: 'Courier New', Courier, monospace;
+    /* Sistemdeki en 'eski' görünümlü font */
+    font-size: 16px;
+    font-weight: bold;
+    text-transform: uppercase;
+    /* Hepsi büyük harf olsun, daha oyunsu durur */
+
+    /* Pikselli Çerçeve Hilesi (Pure CSS Pixel Art Border) */
+    /* Bu, 4px kalınlığında keskin bir siyah çerçeve oluşturur */
+    box-shadow:
+        0 4px 0 0 #000,
+        0 -4px 0 0 #000,
+        4px 0 0 0 #000,
+        -4px 0 0 0 #000;
+
+    /* Tarayıcının yumuşatma yapmasını engellemeye çalışalım */
+    image-rendering: pixelated;
+    font-smooth: never;
+    -webkit-font-smoothing: none;
+}
+
+/* --- GEÇİŞ EKRANI (Transition Screen) --- */
+#transition-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+    /* Simsiyah perde */
+    z-index: 9999;
+    /* Her şeyin (UI'ın bile) üstünde */
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    opacity: 0;
+    /* Başlangıçta tamamen şeffaf */
+    pointer-events: none;
+    /* Şeffafken tıklamaları engellemesin */
+    transition: opacity 1.5s ease-in-out;
+    /* 1.5 saniyede yavaşça belirsin/kaybolsun */
+}
+
+/* Bu sınıf eklendiğinde perde görünür olacak */
+#transition-screen.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+#transition-text {
+    color: white;
+    font-family: 'Courier New', Courier, monospace;
+    /* Retro font */
+    font-size: 28px;
+    text-align: center;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+
+    /* Hafif titreme efekti vermesi için pixelated */
+    image-rendering: pixelated;
+    transition: opacity 0.5s ease-in-out;
+}
+
+#message-box {
+    position: absolute;
+    top: 50px;
+    /* Karakterin başının üzeri için tahmini konum */
+    left: 50%;
+    /* Ekranın ortası */
+    transform: translateX(-50%);
+    /* Tam ortalamak için */
+    width: 60%;
+    /* Ekranın %60'ı genişliğinde */
+    background-color: #fff;
+    border: 4px solid #000;
+    /* Kalın pixel çerçeve */
+    padding: 15px;
+    z-index: 10;
+    /* Karakterlerin önünde dursun */
+
+    /* Hafif gölge ile derinlik */
+    box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.2);
+}
+
+#message-text {
+    margin: 0;
+    font-family: 'Courier New', monospace;
+    /* Daktilo/Pixel havası */
+    font-size: 18px;
+    font-weight: bold;
+    color: #000;
+    text-align: center;
+    image-rendering: pixelated;
+}
+
+#heart-counter {
+    position: absolute;
+    top: 25px;
+    right: 25px;
+    background-color: #ff4d6d;
+    color: #ffffff;
+    padding: 6px 14px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 18px;
+    font-weight: bold;
+    z-index: 101;
+    box-shadow:
+        0 4px 0 0 #000,
+        0 -4px 0 0 #000,
+        4px 0 0 0 #000,
+        -4px 0 0 0 #000;
+    image-rendering: pixelated;
+    display: none;
+    border-radius: 4px;
+    text-shadow:
+        -2px 0 0 #000,
+        2px 0 0 #000,
+        0 -2px 0 #000,
+        0 2px 0 #000;
+}
+
+@keyframes heartCollect {
+    0% {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(2) translateY(-40px);
+        opacity: 0;
+    }
+}
+
+.heart-collect-anim {
+    animation: heartCollect 0.5s ease-out forwards;
+}
+
+/* --- SAHNE 4: ZARİF EVLİLİK TEKLİFİ VE ÇİÇEK YAĞMURU --- */
+
+#proposal-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 2500;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(4px);
+    animation: fadeInOverlay 0.8s ease-out forwards;
+}
+
+#proposal-card {
+    background: linear-gradient(135deg, rgba(25, 12, 32, 0.85) 0%, rgba(45, 18, 40, 0.90) 100%);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1.5px solid rgba(255, 215, 0, 0.45);
+    border-radius: 24px;
+    padding: 26px 36px;
+    width: 85%;
+    max-width: 620px;
+    text-align: center;
+    box-shadow: 
+        0 20px 50px rgba(0, 0, 0, 0.7),
+        0 0 30px rgba(255, 182, 193, 0.25),
+        inset 0 0 15px rgba(255, 215, 0, 0.15);
+    animation: cardPopIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    position: relative;
+}
+
+.proposal-ring-icon {
+    font-size: 42px;
+    margin-bottom: 12px;
+    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
+    animation: glowPulse 2s infinite ease-in-out;
+}
+
+#proposal-text {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 20px;
+    line-height: 1.6;
+    color: #fff5f7;
+    text-shadow: 
+        0 2px 8px rgba(0, 0, 0, 0.8),
+        0 0 12px rgba(255, 192, 203, 0.4);
+    letter-spacing: 0.3px;
+    margin-bottom: 22px;
+}
+
+#proposal-text strong {
+    font-family: 'Dancing Script', 'Great Vibes', cursive;
+    font-size: 32px;
+    display: block;
+    margin-top: 12px;
+    color: #ffd700;
+    text-shadow: 
+        0 0 10px rgba(255, 215, 0, 0.6),
+        0 2px 6px rgba(0, 0, 0, 0.9);
+}
+
+#proposal-buttons {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+    min-height: 60px;
+    width: 100%;
+}
+
+#btn-yes {
+    background: linear-gradient(135deg, #ff4e50 0%, #f9d423 100%);
+    border: none;
+    border-radius: 50px;
+    color: #ffffff;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 19px;
+    padding: 14px 42px;
+    cursor: pointer;
+    box-shadow: 0 6px 22px rgba(255, 78, 80, 0.6);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    animation: heartbeatBtn 1.6s infinite ease-in-out;
+    z-index: 5;
+}
+
+#btn-yes:hover {
+    transform: scale(1.08);
+    box-shadow: 0 8px 28px rgba(255, 78, 80, 0.8);
+}
+
+#btn-no {
+    background: rgba(255, 255, 255, 0.16);
+    border: 1.5px solid rgba(255, 255, 255, 0.35);
+    border-radius: 50px;
+    color: #f0f0f0;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
+    font-size: 15px;
+    padding: 10px 24px;
+    cursor: pointer;
+    transition: left 0.15s ease-out, top 0.15s ease-out, transform 0.15s ease-out;
+    z-index: 10;
+    user-select: none;
+}
+
+/* LEGO ÇİÇEKLERİ YAĞMURU */
+#flower-rain-container {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 3000;
+    overflow: hidden;
+}
+
+.falling-lego-flower {
+    position: absolute;
+    pointer-events: none;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+    will-change: transform, opacity;
+}
+
+/* KUTLAMA / SON MESAJ */
+#final-celebration {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    text-align: center;
+    z-index: 3500;
+    transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    pointer-events: none;
+    width: 90%;
+}
+
+#final-celebration.show {
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.celebration-title {
+    font-family: 'Dancing Script', 'Great Vibes', cursive;
+    font-size: 52px;
+    font-weight: 700;
+    color: #ff4d6d;
+    text-shadow:
+        0 0 15px rgba(255, 77, 109, 0.8),
+        3px 3px 0 #fff,
+        -3px -3px 0 #fff,
+        3px -3px 0 #fff,
+        -3px 3px 0 #fff;
+    margin-bottom: 10px;
+    animation: glowPulse 2s infinite ease-in-out;
+}
+
+.celebration-subtitle {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 26px;
+    color: #ffd700;
+    text-shadow: 
+        0 2px 10px rgba(0, 0, 0, 0.9),
+        0 0 8px rgba(255, 215, 0, 0.6);
+}
+
+/* ANIMASYON KEYFRAME'LERİ */
+@keyframes fadeInOverlay {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes cardPopIn {
+    0% { transform: scale(0.6) translateY(40px); opacity: 0; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+@keyframes glowPulse {
+    0%, 100% { filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.7)); transform: scale(1); }
+    50% { filter: drop-shadow(0 0 18px rgba(255, 215, 0, 1)); transform: scale(1.1); }
+}
+
+@keyframes heartbeatBtn {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+@keyframes fallAndSway {
+    0% {
+        transform: translateY(-80px) rotate(0deg) translateX(0px);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(115vh) rotate(540deg) translateX(50px);
+        opacity: 0;
+    }
+}

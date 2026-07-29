@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#000000">
+    <title>Paris'te Bir Gün</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Google Fonts for elegant romantic proposal typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Great+Vibes&family=Montserrat:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+
+    <div id="rotate-hint">📱 Daha iyi bir deneyim için telefonunu yan çevir</div>
+
+    <div id="viewport-wrapper">
+        <div id="game-container">
+
+            <div id="scene-area">
+                <video id="scene-video" playsinline muted loop
+                    style="display: none; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1;"></video>
+
+                <div id="message-box" style="display: none;">
+                    <p id="message-text"></p>
+                </div>
+            </div>
+
+            <div id="ui-layer">
+                <div id="transition-screen">
+                    <div id="transition-text">PARİS YOLCULUĞU</div>
+                </div>
+            </div>
+
+            <div id="date-display">PARİS</div>
+            <div id="heart-counter" style="display: none;">❤️ 0 / 10</div>
+
+            <!-- Arka Plan Müzik Çalar -->
+            <audio id="bg-music" preload="auto"></audio>
+
+            <!-- Zarif Evlilik Teklifi Modalı (Scene 4) -->
+            <div id="proposal-overlay" style="display: none;">
+                <div id="proposal-card">
+                    <div class="proposal-ring-icon">💍</div>
+                    <div id="proposal-text">
+                        Bu hayattaki ilk ve son aşkım senin olmanı istiyorum.<br>
+                        Bu yolda benim ilkim ve sonum olur musun?<br>
+                        <strong>Benimle evlenir misin?</strong>
+                    </div>
+                    <div id="proposal-buttons">
+                        <button id="btn-yes">EVET! ❤️</button>
+                        <button id="btn-no">Hayır 🙈</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lego Çiçekleri Yağmuru Konteynırı -->
+            <div id="flower-rain-container" style="display: none;"></div>
+
+            <!-- Kutlama / Son Ekran -->
+            <div id="final-celebration">
+                <div class="celebration-title">SENİ ÇOK SEVİYORUM! ❤️✨</div>
+                <div class="celebration-subtitle">Sonsuza Dek Birlikte 💍🌸</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobil dokunmatik kontrol -->
+    <div id="touch-controls">
+        <button id="btn-right" aria-label="İleri git">➡️</button>
+    </div>
+
+    <script src="js/game.js"></script>
+
+</body>
+
+</html>
