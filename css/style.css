@@ -131,8 +131,15 @@ img {
 
 /* Baggage loading bobbing effect */
 @keyframes baggageBob {
-    0%, 100% { margin-bottom: 0px; }
-    50% { margin-bottom: 14px; }
+
+    0%,
+    100% {
+        margin-bottom: 0px;
+    }
+
+    50% {
+        margin-bottom: 14px;
+    }
 }
 
 .character.loading-bob {
@@ -295,6 +302,7 @@ img {
         transform: scale(1) translateY(0);
         opacity: 1;
     }
+
     100% {
         transform: scale(2) translateY(-40px);
         opacity: 0;
@@ -329,7 +337,7 @@ img {
     width: 85%;
     max-width: 620px;
     text-align: center;
-    box-shadow: 
+    box-shadow:
         0 20px 50px rgba(0, 0, 0, 0.7),
         0 0 30px rgba(255, 182, 193, 0.25),
         inset 0 0 15px rgba(255, 215, 0, 0.15);
@@ -349,7 +357,7 @@ img {
     font-size: 20px;
     line-height: 1.6;
     color: #fff5f7;
-    text-shadow: 
+    text-shadow:
         0 2px 8px rgba(0, 0, 0, 0.8),
         0 0 12px rgba(255, 192, 203, 0.4);
     letter-spacing: 0.3px;
@@ -362,7 +370,7 @@ img {
     display: block;
     margin-top: 12px;
     color: #ffd700;
-    text-shadow: 
+    text-shadow:
         0 0 10px rgba(255, 215, 0, 0.6),
         0 2px 6px rgba(0, 0, 0, 0.9);
 }
@@ -450,12 +458,11 @@ img {
 }
 
 .celebration-title {
-    font-family: 'Dancing Script', 'Great Vibes', cursive;
+    font-family: 'Playfair Display', Georgia, serif;
     font-size: 52px;
     font-weight: 700;
     color: #ff4d6d;
     text-shadow:
-        0 0 15px rgba(255, 77, 109, 0.8),
         3px 3px 0 #fff,
         -3px -3px 0 #fff,
         3px -3px 0 #fff,
@@ -468,30 +475,58 @@ img {
     font-family: 'Playfair Display', Georgia, serif;
     font-size: 26px;
     color: #ffd700;
-    text-shadow: 
+    text-shadow:
         0 2px 10px rgba(0, 0, 0, 0.9),
         0 0 8px rgba(255, 215, 0, 0.6);
 }
 
 /* ANIMASYON KEYFRAME'LERİ */
 @keyframes fadeInOverlay {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 @keyframes cardPopIn {
-    0% { transform: scale(0.6) translateY(40px); opacity: 0; }
-    100% { transform: scale(1) translateY(0); opacity: 1; }
+    0% {
+        transform: scale(0.6) translateY(40px);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
 }
 
 @keyframes glowPulse {
-    0%, 100% { filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.7)); transform: scale(1); }
-    50% { filter: drop-shadow(0 0 18px rgba(255, 215, 0, 1)); transform: scale(1.1); }
+
+    0%,
+    100% {
+        filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.7));
+        transform: scale(1);
+    }
+
+    50% {
+        filter: drop-shadow(0 0 18px rgba(255, 215, 0, 1));
+        transform: scale(1.1);
+    }
 }
 
 @keyframes heartbeatBtn {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
 }
 
 @keyframes fallAndSway {
@@ -499,12 +534,15 @@ img {
         transform: translateY(-80px) rotate(0deg) translateX(0px);
         opacity: 0;
     }
+
     10% {
         opacity: 1;
     }
+
     90% {
         opacity: 1;
     }
+
     100% {
         transform: translateY(115vh) rotate(540deg) translateX(50px);
         opacity: 0;

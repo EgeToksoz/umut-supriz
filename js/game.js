@@ -116,8 +116,38 @@ function getBgStyle(url) {
 const UIManager = {
     setDate: function (dateText) {
         document.getElementById('date-display').innerText = dateText;
+    },
+    setTouchControlsVisible: function (visible) {
+        const controls = document.getElementById('touch-controls');
+        if (controls) {
+            controls.style.display = visible ? 'block' : 'none';
+        }
     }
 };
+
+// iOS Mobile Safari için ses kilidini açma mantığı (İlk dokunuşta sesi unlock eder)
+let isAudioUnlocked = false;
+function unlockAudioOnFirstTouch() {
+    if (isAudioUnlocked) return;
+    const bgAudio = document.getElementById('bg-music');
+    if (bgAudio) {
+        // Sessiz duruma getirip play & pause yaparak Safari Autoplay restriction'ı kaldırıyoruz
+        const prevVolume = bgAudio.volume;
+        bgAudio.volume = 0;
+        const playPromise = bgAudio.play();
+        if (playPromise !== undefined) {
+            playPromise.then(() => {
+                bgAudio.pause();
+                bgAudio.volume = prevVolume;
+                isAudioUnlocked = true;
+            }).catch(err => console.log("Audio unlock catch:", err));
+        }
+    } else {
+        isAudioUnlocked = true;
+    }
+}
+document.addEventListener('touchstart', unlockAudioOnFirstTouch, { once: true, passive: true });
+document.addEventListener('click', unlockAudioOnFirstTouch, { once: true, passive: true });
 
 // Geçiş Yöneticisi
 const TransitionManager = {
@@ -205,6 +235,7 @@ const Scene1 = {
     init: function () {
         console.log("Paris Sahne 1: Evden Çıkış");
         UIManager.setDate("İSTANBUL - EVDEN ÇIKIŞ");
+        UIManager.setTouchControlsVisible(false);
 
         this.umut = document.getElementById('umut-can');
         this.deniz = document.getElementById('deniz');
@@ -248,6 +279,7 @@ const Scene1 = {
 
     openDoorAndEmerge: function () {
         this.state = 'OPEN_DOOR';
+        UIManager.setTouchControlsVisible(true);
 
         // 2. Arkaplan kapı açık resmi olur
         this.bg.style.backgroundImage = getBgStyle(ASSETS_CONFIG.scene1DoorOpen);
@@ -340,6 +372,7 @@ const Scene1 = {
 
     startLoadingBaggage: function () {
         this.state = 'LOADING_BAGS';
+        UIManager.setTouchControlsVisible(false);
         hideMessage();
 
         // Lock final positions at the car with 1.0 progress (max scale & perspective height)
@@ -404,6 +437,7 @@ const Scene2 = {
     init: function () {
         console.log("Sahne 2: Havaalanına Yolculuk");
         UIManager.setDate("HAVAALANINA YOLCULUK");
+        UIManager.setTouchControlsVisible(false);
 
         this.umut = document.getElementById('umut-can');
         this.deniz = document.getElementById('deniz');
@@ -514,14 +548,14 @@ const SCENE3_CONFIG = {
     // *** Karakterleri yolun kenarına göre buradan kolayca ayarlayabilirsiniz ***
     cityViewCharacters: {
         umut: {
-            left: 32,       // Umut Can X konumu (%) - Yolun kenarı
-            bottom: 8,      // Umut Can Y konumu (% bottom)
-            scale: 1.15,    // Umut Can boyutu
+            left: 45,       // Umut Can X konumu (%) - Yolun kenarı
+            bottom: 3,      // Umut Can Y konumu (% bottom)
+            scale: 1,    // Umut Can boyutu
         },
         deniz: {
-            left: 42,       // Deniz X konumu (%) - Yolun kenarı
-            bottom: 8,      // Deniz Y konumu (% bottom)
-            scale: 1.15,    // Deniz boyutu
+            left: 51,       // Deniz X konumu (%) - Yolun kenarı
+            bottom: 2.5,      // Deniz Y konumu (% bottom)
+            scale: 1,    // Deniz boyutu
         }
     }
 };
@@ -530,6 +564,7 @@ const SCENE3_CONFIG = {
 const Scene3 = {
     init: function () {
         console.log("Paris Sahne 3: Paris Yolculuğu & Şehir Gezisi");
+        UIManager.setTouchControlsVisible(false);
 
         this.umut = document.getElementById('umut-can');
         this.deniz = document.getElementById('deniz');
@@ -600,6 +635,7 @@ const Scene3 = {
     startWalkingMinigameStage: function () {
         this.state = 'WALKING_MINIGAME';
         UIManager.setDate("PARİS SOKAKLARI - AŞK YÜRÜYÜŞÜ");
+        UIManager.setTouchControlsVisible(true);
 
         // Tekrar eden yürüyüş arkaplanı
         this.bg.style.backgroundImage = getBgStyle(ASSETS_CONFIG.scene3WalkingBg);
@@ -758,6 +794,7 @@ const Scene3 = {
 
     finishMinigame: function () {
         this.state = 'MINIGAME_COMPLETED';
+        UIManager.setTouchControlsVisible(false);
         if (this.heartCounterUI) this.heartCounterUI.style.display = 'none';
         this.removeAllHearts();
 
@@ -829,7 +866,7 @@ const Scene3 = {
 const SCENE4_CONFIG = {
     // 🎵 MÜZİK VE VİDEO AYARLARI
     audioPath: 'assets/music/Love Story.m4a',
-    audioStartTimeSeconds: 189, // 3 dakika 9 saniye (3 * 60 + 9)
+    audioStartTimeSeconds: 181, // 3 dakika 1 saniye (181s - Eyfel terasına geçiş anı)
     audioVolume: 0.1,           // Müzik ses seviyesi (0.0 - 1.0)
     videoPath: 'assets/images/scene-4-terrace-video.mp4',
     videoDuration: 10000,        // Videonun evlilik teklifi modalı açılmadan önceki gösterim süresi (ms)
@@ -852,7 +889,7 @@ const SCENE4_CONFIG = {
             startLeft: 38,      // Başlangıç X konumu (%)
             startBottom: 2,     // Başlangıç Y konumu (% bottom)
             endLeft: 42,        // Varış X konumu (%)
-            endBottom: 18,      // Varış Y konumu (% bottom)
+            endBottom: 13,      // Varış Y konumu (% bottom)
             scaleStart: 1.15,   // Başlangıç ölçeği
             scaleEnd: 1.15      // Varış ölçeği (derinlik hissi)
         },
@@ -861,7 +898,7 @@ const SCENE4_CONFIG = {
             startLeft: 50,      // Başlangıç X konumu (%)
             startBottom: 2,     // Başlangıç Y konumu (% bottom)
             endLeft: 51,        // Varış X konumu (%)
-            endBottom: 18,      // Varış Y konumu (% bottom)
+            endBottom: 13,      // Varış Y konumu (% bottom)
             scaleStart: 1.15,   // Başlangıç ölçeği
             scaleEnd: 1.15      // Varış ölçeği (derinlik hissi)
         }
@@ -892,6 +929,7 @@ const SCENE4_CONFIG = {
 const Scene4 = {
     init: function () {
         console.log("Paris Sahne 4: Akşam Yemeği & Evlilik Teklifi");
+        UIManager.setTouchControlsVisible(false);
 
         this.umut = document.getElementById('umut-can');
         this.deniz = document.getElementById('deniz');
@@ -952,6 +990,9 @@ const Scene4 = {
     startTerraceWalk: function () {
         this.state = 'TERRACE_WALK';
         UIManager.setDate("PARİS - EYFEL TERASI");
+
+        // 🎵 Eyfel Terası Sahnesi Başlar Başlamaz Müziği 181. Saniyeden Başlat
+        this.playBackgroundMusic();
 
         this.bg.style.backgroundImage = getBgStyle(SCENE4_CONFIG.terraceBg);
 
@@ -1030,7 +1071,34 @@ const Scene4 = {
         showTerraceDialogue();
     },
 
-    // 3. Aşama: Müzik (3:09'dan itibaren) ve Video Arkaplanı
+    playBackgroundMusic: function () {
+        const audio = document.getElementById('bg-music');
+        if (audio) {
+            audio.src = SCENE4_CONFIG.audioPath;
+            audio.volume = SCENE4_CONFIG.audioVolume;
+
+            const startPlay = () => {
+                try {
+                    audio.currentTime = SCENE4_CONFIG.audioStartTimeSeconds;
+                } catch (e) {
+                    console.log("Audio currentTime error:", e);
+                }
+                const playPromise = audio.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(err => console.log("Audio play notice:", err));
+                }
+            };
+
+            if (audio.readyState >= 1) {
+                startPlay();
+            } else {
+                audio.addEventListener('loadedmetadata', startPlay, { once: true });
+                audio.load();
+            }
+        }
+    },
+
+    // 3. Aşama: Müzik ve Video Arkaplanı
     startTerraceVideoAndMusic: function () {
         this.state = 'VIDEO_MUSIC';
         hideMessage();
@@ -1042,15 +1110,9 @@ const Scene4 = {
         const video = document.getElementById('scene-video');
         const audio = document.getElementById('bg-music');
 
-        // 1. Müzik 3. dakıka 9. saniyeden (189s) itibaren çalsın
-        if (audio) {
-            audio.src = SCENE4_CONFIG.audioPath;
-            audio.currentTime = SCENE4_CONFIG.audioStartTimeSeconds; // 189 saniye!
-            audio.volume = SCENE4_CONFIG.audioVolume;
-            const playPromise = audio.play();
-            if (playPromise !== undefined) {
-                playPromise.catch(err => console.log("Audio play notice:", err));
-            }
+        // Müzik zaten çalmıyorsa başlat
+        if (audio && (audio.paused || audio.ended)) {
+            this.playBackgroundMusic();
         }
 
         // 2. Arkaplanda terrace video oynasın
